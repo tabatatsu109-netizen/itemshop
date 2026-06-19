@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>八ヶ岳グランデFC | 公式アイテムショップ</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:#f2f5f2;color:#111}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:16px}
+.flt-wrap{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.flt-wrap::-webkit-scrollbar{display:none}
+.size-wrap{display:flex;gap:5px;flex-wrap:wrap}
+.cart-group{padding:12px 0;border-bottom:1px solid #f0f0f0}
+.olist{display:flex;flex-direction:column;gap:8px}
+.dc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.st-szs{display:flex;gap:6px;flex-wrap:wrap}
+.sf-wrap{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;scrollbar-width:none}
+.sf-wrap::-webkit-scrollbar{display:none}
+.sc-btns{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+@media(max-width:600px){.frow{grid-template-columns:1fr!important}}
+@media print{
+  body>*{display:none!important}
+  #inv{display:block!important;padding:32px;font-family:'Noto Sans JP',sans-serif}
+  #inv table{width:100%;border-collapse:collapse}
+  #inv th{background:#1a6b2f;color:#fff;padding:8px;text-align:left;font-size:13px}
+  #inv td{padding:7px 8px;font-size:13px;border-bottom:1px solid #eee}
+  #inv .meta td{border:1px solid #ddd;padding:5px 8px}
+  #inv .meta td:first-child{background:#f0faf0;font-weight:700;width:110px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="inv" style="display:none"></div>
+
+<script type="text/babel" data-presets="env,react" data-type="script">
+"use strict";
+var useState = React.useState;
+var useCallback = React.useCallback;
+
+const PRODS = [
+  {id:1,name:"ユニフォーム（緑）",brand:"ATHLETA",desc:"公式戦の際に必要。1〜3年生はプラユニでも可。",price:8600,cat:"ユニフォーム",sizes:["130","140","150","160","S","M","L","O","XO"],reqJ:true,reqJU:true},
+  {id:2,name:"ユニフォーム（白）",brand:"ATHLETA",desc:"公式戦の際に必要。1〜3年生はプラユニでも可。",price:8600,cat:"ユニフォーム",sizes:["130","140","150","160","S","M","L","O","XO"],reqJ:true,reqJU:true},
+  {id:3,name:"プラクティスシャツ（白）",brand:"ATHLETA",desc:"練習時や試合前のアップ時に着用できます。",price:4800,cat:"トップス",sizes:["S","M","L","O","XO"],reqJ:true,reqJU:true},
+  {id:4,name:"ゲームパンツ（白）",brand:"ATHLETA",desc:"公式戦・練習時に使用。",price:5200,cat:"ボトムス",sizes:["130","140","150","160","S","M","L","O","XO"],reqJ:true,reqJU:true},
+  {id:5,name:"ソックス（緑）",brand:"ATHLETA",desc:"",price:1800,cat:"ソックス",sizes:["19-21","19-21（2足）","22-24","22-24（2足）","25-27","25-27（2足）"],reqJ:true,reqJU:true},
+  {id:6,name:"ソックス（白）",brand:"ATHLETA",desc:"",price:1800,cat:"ソックス",sizes:["19-21","19-21（2足）","22-24","22-24（2足）","25-27","25-27（2足）"],reqJ:true,reqJU:true},
+  {id:7,name:"ソックス（赤）",brand:"ATHLETA",desc:"※GKの選手のみ",price:1800,cat:"ソックス",sizes:["19-21","19-21（2足）","22-24","22-24（2足）","25-27","25-27（2足）"],reqJ:true,reqJU:true},
+  {id:8,name:"リバーシブルビブス",brand:"ATHLETA",desc:"",price:2500,cat:"その他",sizes:["ジュニアサイズ","ジュニアユースサイズ"],reqJ:true,reqJU:true},
+  {id:9,name:"バックパック",brand:"ATHLETA",desc:"クラブマーク付き。練習・試合・遠征時に。",price:9500,cat:"バッグ",sizes:["1個"],reqJ:true,reqJU:true},
+  {id:10,name:"ポロシャツ（ネイビー）",brand:"ATHLETA",desc:"※ATHLETAではありません。カラー：ネイビー",price:3500,cat:"トップス",sizes:["S","M","L","O","XO"],reqJ:false,reqJU:true},
+  {id:11,name:"プラユニ（緑）",brand:"ノーブランド",desc:"練習試合の際、ユニフォームとして着用できます。",price:4000,cat:"ユニフォーム",sizes:["130","140","150","160","S","M","L","O","XO"],reqJ:false,reqJU:false},
+  {id:12,name:"プラユニ（白）",brand:"ノーブランド",desc:"練習試合の際、ユニフォームとして着用できます。",price:4000,cat:"ユニフォーム",sizes:["130","140","150","160","S","M","L","O","XO"],reqJ:false,reqJU:false},
+  {id:13,name:"プラユニ（赤）",brand:"ノーブランド",desc:"練習試合・GK用。",price:4000,cat:"ユニフォーム",sizes:["130","140","150","160","S","M","L","O","XO"],reqJ:false,reqJU:false},
+  {id:14,name:"プラユニ（黄）",brand:"ノーブランド",desc:"練習試合・GK用。",price:4000,cat:"ユニフォーム",sizes:["130","140","150","160","S","M","L","O","XO"],reqJ:false,reqJU:false},
+  {id:15,name:"半袖プラクティスシャツ（白）",brand:"ノーブランド",desc:"練習時や着替え等に。※公式戦はATHLETAをご着用ください。",price:3200,cat:"トップス",sizes:["120","130","140","150","160","S","M","L","O","XO"],reqJ:false,reqJU:false},
+  {id:16,name:"長袖プラクティスシャツ（白）",brand:"ノーブランド",desc:"練習時や着替え等に。※公式戦はATHLETAをご着用ください。",price:3500,cat:"トップス",sizes:["S","M","L","O","XO"],reqJ:false,reqJU:false},
+  {id:17,name:"スウェット上下",brand:"ノーブランド",desc:"体育館練習や遠征先の部屋着等にも着用できます。",price:6500,cat:"セットアップ",sizes:["S","M","L","O","XO"],reqJ:false,reqJU:false},
+  {id:18,name:"パーカー（選手用）",brand:"ノーブランド",desc:"合宿の部屋着や練習後の着替え等に着用できます。",price:4500,cat:"トップス",sizes:["S","M","L","O","XO"],reqJ:false,reqJU:false},
+];
+
+const CATS = ["すべて","ユニフォーム","トップス","ボトムス","ソックス","バッグ","セットアップ","その他"];
+const TEAMS = ["ジュニア（U-12）","ジュニアユース（U-15）","スクール"];
+const PAYS = ["現金払い","銀行振込","PayPay"];
+const STS = ["未確認","確認済み","発注済み","入荷済み","受け渡し完了"];
+const ST_COLORS = ["#F59E0B","#3B82F6","#8B5CF6","#10B981","#9CA3AF"];
+const ADM_PW = "grande2024";
+const G = {g1:"#1a6b2f",g2:"#145224",g3:"#0d3b1e",gold:"#c8a94a",lt:"#f2f5f2"};
+
+const fmt = n => "¥" + n.toLocaleString();
+const fmtD = d => new Date(d).toLocaleDateString("ja-JP",{year:"numeric",month:"2-digit",day:"2-digit"});
+const genId = () => "ORD-" + Date.now().toString(36).toUpperCase();
+
+const DEMO_ORDERS = [
+  {id:"ORD-DEMO001",date:new Date(Date.now()-86400000*2).toISOString(),pName:"田中 花子",sName:"田中 翔",cat:"ジュニア（U-12）",email:"tanaka@example.com",items:[{pid:1,pname:"ユニフォーム（緑）",size:"140",qty:1,price:8600},{pid:5,pname:"ソックス（緑）",size:"22-24",qty:1,price:1800}],total:10400,pay:"現金払い",status:"未確認",note:""},
+  {id:"ORD-DEMO002",date:new Date(Date.now()-86400000*5).toISOString(),pName:"鈴木 美咲",sName:"鈴木 健太",cat:"ジュニアユース（U-15）",email:"suzuki@example.com",items:[{pid:10,pname:"ポロシャツ（ネイビー）",size:"M",qty:1,price:3500},{pid:17,pname:"スウェット上下",size:"L",qty:1,price:6500}],total:10000,pay:"銀行振込",status:"確認済み",note:""},
+];
+
+function Btn({onClick,children,style,disabled}){
+  return <button onClick={onClick} disabled={disabled} style={{cursor:disabled?"not-allowed":"pointer",fontFamily:"'Noto Sans JP',sans-serif",...style}}>{children}</button>;
+}
+function Badge({color,bg,children}){
+  return <span style={{background:bg,color,fontSize:9,fontWeight:700,padding:"3px 7px",borderRadius:3,whiteSpace:"nowrap"}}>{children}</span>;
+}
+function StatusBadge({status}){
+  const i=STS.indexOf(status);
+  const bg=["#FEF3C7","#DBEAFE","#EDE9FE","#D1FAE5","#F3F4F6"][i]||"#F3F4F6";
+  const col=["#92400E","#1E40AF","#5B21B6","#065F46","#374151"][i]||"#374151";
+  const dot=ST_COLORS[i]||"#9CA3AF";
+  return <span style={{display:"inline-flex",alignItems:"center",gap:4,padding:"3px 9px",borderRadius:99,fontSize:11,fontWeight:700,background:bg,color:col,whiteSpace:"nowrap"}}>
+    <span style={{width:5,height:5,borderRadius:"50%",background:dot,display:"inline-block"}}/>
+    {status}
+  </span>;
+}
+
+function ProductCard({p,onAdd}){
+  const [selSz,setSelSz]=useState(p.sizes[0]);
+  const [qty,setQty]=useState(1);
+  const [flash,setFlash]=useState(false);
+  const handleAdd=()=>{onAdd(p,selSz,qty);setFlash(true);setTimeout(()=>setFlash(false),700);};
+  const icon=p.cat==="ソックス"?"🧦":p.cat==="バッグ"?"🎒":p.cat==="ボトムス"?"👖":"👕";
+  return(
+    <div style={{background:"#fff",borderRadius:14,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,.08)"}}>
+      <div style={{background:"#f0f4f0",padding:20,textAlign:"center",position:"relative",minHeight:120,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{fontSize:40}}>{icon}</div>
+        <div style={{position:"absolute",top:8,left:8,display:"flex",gap:4,flexWrap:"wrap"}}>
+          {p.reqJ&&<Badge bg="#f4c430" color="#333">🟡 ジュニア必需品</Badge>}
+          {p.reqJU&&<Badge bg="#e53935" color="#fff">🔴 ジュニアユース必需品</Badge>}
+          {!p.reqJ&&!p.reqJU&&<Badge bg="#888" color="#fff">任意</Badge>}
+          <Badge bg={G.g3} color="#fff">{p.brand}</Badge>
+        </div>
+      </div>
+      <div style={{padding:14}}>
+        <div style={{fontWeight:900,fontSize:15,marginBottom:4}}>{p.name}</div>
+        {p.desc&&<div style={{fontSize:11,color:"#888",lineHeight:1.5,marginBottom:10}}>{p.desc}</div>}
+        <div style={{fontSize:24,fontWeight:900,color:G.g1,marginBottom:12}}>{fmt(p.price)}<span style={{fontSize:12,color:"#bbb",fontWeight:400}}> /点</span></div>
+        <div style={{fontSize:10,fontWeight:700,color:"#555",letterSpacing:2,textTransform:"uppercase",marginBottom:6}}>SIZE</div>
+        <div className="size-wrap" style={{marginBottom:10}}>
+          {p.sizes.map(s=>(
+            <Btn key={s} onClick={()=>setSelSz(s)} style={{padding:"5px 9px",borderRadius:6,border:s===selSz?`1.5px solid ${G.g1}`:"1.5px solid #ddd",background:s===selSz?G.g1:"#fff",color:s===selSz?"#fff":"#444",fontSize:12,fontWeight:700}}>{s}</Btn>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <div style={{display:"flex",alignItems:"center",border:"1.5px solid #ddd",borderRadius:8,overflow:"hidden"}}>
+            <Btn onClick={()=>setQty(q=>Math.max(1,q-1))} style={{width:34,height:38,background:"#f5f5f5",border:"none",fontSize:16,color:"#333"}}>−</Btn>
+            <span style={{width:32,textAlign:"center",fontWeight:700,fontSize:14}}>{qty}</span>
+            <Btn onClick={()=>setQty(q=>q+1)} style={{width:34,height:38,background:"#f5f5f5",border:"none",fontSize:16,color:"#333"}}>＋</Btn>
+          </div>
+          <Btn onClick={handleAdd} style={{flex:1,height:38,background:flash?G.gold:G.g1,color:flash?G.g3:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:13,transition:"background .3s"}}>
+            {flash?"✓ 追加済み":"カートに追加"}
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [page,setPage]=useState("shop");
+  const [cat,setCat]=useState("すべて");
+  const [cart,setCart]=useState([]);
+  const [cartOpen,setCartOpen]=useState(false);
+  const [step,setStep]=useState(0);
+  const [orders,setOrders]=useState(DEMO_ORDERS);
+  const [lastOrder,setLastOrder]=useState(null);
+  const [form,setForm]=useState({pName:"",sName:"",cat:"ジュニア（U-12）",email:"",pay:"現金払い",note:""});
+  const [pw,setPw]=useState("");
+  const [pwErr,setPwErr]=useState("");
+  const [adminTab,setAdminTab]=useState("dash");
+  const [selOid,setSelOid]=useState(null);
+  const [sfSt,setSfSt]=useState("すべて");
+  const [toast,setToast]=useState("");
+
+  const showToast=useCallback((msg)=>{setToast(msg);setTimeout(()=>setToast(""),3000);},[]);
+
+  const addToCart=useCallback((p,sz,qty)=>{
+    setCart(prev=>{
+      const idx=prev.findIndex(i=>i.pid===p.id&&i.size===sz);
+      if(idx>=0){const n=[...prev];n[idx]={...n[idx],qty:n[idx].qty+qty};return n;}
+      return [...prev,{pid:p.id,pname:p.name,size:sz,qty,price:p.price}];
+    });
+    showToast(p.name+"（"+sz+"）× "+qty+" をカートに追加 ✓");
+  },[showToast]);
+
+  const cartTotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const cartCount=cart.reduce((s,i)=>s+i.qty,0);
+
+  const placeOrder=()=>{
+    const oid=genId();
+    const order={...form,id:oid,date:new Date().toISOString(),items:[...cart],total:cartTotal,status:"未確認"};
+    setOrders(prev=>[order,...prev]);
+    setLastOrder(order);
+    setCart([]);
+    setForm({pName:"",sName:"",cat:"ジュニア（U-12）",email:"",pay:"現金払い",note:""});
+    setStep(3);
+  };
+
+  const printInvoice=(o)=>{
+    const el=document.getElementById("inv");
+    if(!el)return;
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;border-bottom:3px solid #1a6b2f;padding-bottom:14px"><div><div style="font-size:20px;font-weight:900;color:#1a6b2f">⚽ 八ヶ岳グランデFC</div></div><div style="font-size:28px;font-weight:900;letter-spacing:4px">請 求 書</div></div><table class="meta" style="margin-bottom:20px"><tr><td>注文ID</td><td>${o.id}</td></tr><tr><td>発行日</td><td>${fmtD(new Date().toISOString())}</td></tr><tr><td>注文日</td><td>${fmtD(o.date)}</td></tr><tr><td>保護者氏名</td><td>${o.pName} 様</td></tr><tr><td>選手氏名</td><td>${o.sName}（${o.cat}）</td></tr><tr><td>支払方法</td><td>${o.pay}</td></tr>${o.note?`<tr><td>備考</td><td>${o.note}</td></tr>`:""}</table><table><thead><tr><th>商品名</th><th>サイズ</th><th>数量</th><th>単価</th><th>小計</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${i.pname}</td><td>${i.size}</td><td>${i.qty}点</td><td>${fmt(i.price)}</td><td>${fmt(i.price*i.qty)}</td></tr>`).join("")}</tbody></table><div style="text-align:right;font-size:18px;font-weight:900;margin-top:10px">合計金額：<span style="color:#1a6b2f;font-size:24px">${fmt(o.total)}</span></div><div style="margin-top:18px;padding:10px;background:#f5f5f5;font-size:12px;color:#555;border-radius:6px">※ お支払いは「${o.pay}」でお願いします。ご不明点は八ヶ岳グランデFCまでお問い合わせください。</div>`;
+    window.print();
+  };
+
+  const csvDl=(content,fname)=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+content],{type:"text/csv;charset=utf-8"}));a.download=fname;a.click();};
+  const escCsv=v=>{const s=String(v==null?"":v);return s.includes(",")||s.includes('"')||s.includes("\n")?'"'+s.replace(/"/g,'""')+'"':s;};
+  const mkCsv=rows=>rows.map(r=>r.map(escCsv).join(",")).join("\n");
+
+  const filteredProds=cat==="すべて"?PRODS:PRODS.filter(p=>p.cat===cat);
+  const cartGrouped=cart.reduce((acc,it)=>{if(!acc[it.pid])acc[it.pid]={pname:it.pname,items:[]};acc[it.pid].items.push(it);return acc;},{});
+  const adminStats=PRODS.map(p=>{const sc={};p.sizes.forEach(s=>sc[s]=0);orders.forEach(o=>o.items.forEach(i=>{if(i.pid===p.id)sc[i.size]=(sc[i.size]||0)+i.qty;}));const total=Object.values(sc).reduce((a,b)=>a+b,0);return{...p,sc,total};}).filter(p=>p.total>0);
+  const totalSales=orders.reduce((s,o)=>s+o.total,0);
+  const bySt=s=>orders.filter(o=>o.status===s).length;
+  const filteredOrders=sfSt==="すべて"?orders:orders.filter(o=>o.status===sfSt);
+
+  return(
+    <div style={{fontFamily:"'Noto Sans JP',sans-serif",background:G.lt,minHeight:"100vh"}}>
+      {toast&&<div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:G.g3,color:"#fff",padding:"11px 20px",borderRadius:99,fontSize:14,fontWeight:600,zIndex:9999,border:"1px solid "+G.gold,whiteSpace:"nowrap",pointerEvents:"none"}}>✓ {toast}</div>}
+
+      {/* ─── SHOP ─── */}
+      {page==="shop"&&<>
+        <div style={{position:"sticky",top:0,zIndex:100,background:G.g3,borderBottom:"3px solid "+G.gold}}>
+          <div style={{maxWidth:1200,margin:"0 auto",padding:"0 16px",height:60,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:38,height:38,background:G.gold,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:G.g3,fontSize:18}}>G</div>
+              <div><div style={{color:"#fff",fontWeight:900,fontSize:16,letterSpacing:2,fontFamily:"'Barlow Condensed',sans-serif"}}>GRANDE FC</div><div style={{color:G.gold,fontSize:10,letterSpacing:2}}>OFFICIAL SHOP</div></div>
+            </div>
+            <Btn onClick={()=>setCartOpen(true)} style={{background:"none",border:"none",fontSize:26,color:"#fff",position:"relative",padding:6}}>
+              🛒{cartCount>0&&<span style={{position:"absolute",top:0,right:0,background:"#e53935",color:"#fff",borderRadius:"50%",width:18,height:18,fontSize:10,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{cartCount}</span>}
+            </Btn>
+          </div>
+        </div>
+
+        <div style={{background:G.g3,padding:"60px 16px 48px",textAlign:"center",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:"-10%",right:"-5%",width:"40%",height:"120%",background:G.gold,opacity:.04,transform:"skewX(-15deg)"}}/>
+          <div style={{position:"relative"}}>
+            <div style={{display:"inline-block",border:"1px solid rgba(200,169,74,.5)",color:G.gold,fontSize:11,fontWeight:700,letterSpacing:3,padding:"5px 14px",borderRadius:99,marginBottom:14}}>⚽ 八ヶ岳グランデFC</div>
+            <div style={{color:"#fff",fontSize:"clamp(36px,8vw,64px)",fontWeight:900,letterSpacing:3,lineHeight:1,marginBottom:6,fontFamily:"'Barlow Condensed',sans-serif"}}>OFFICIAL<br/><span style={{color:G.gold}}>ITEM SHOP</span></div>
+            <div style={{color:"rgba(255,255,255,.55)",fontSize:14,marginBottom:22,lineHeight:1.8}}>公式クラブウェア・グッズの注文はこちらから</div>
+            <Btn onClick={()=>setCartOpen(true)} style={{background:G.gold,color:G.g3,border:"none",padding:"13px 28px",fontWeight:900,fontSize:16,borderRadius:6,letterSpacing:1}}>カートを見る 🛒</Btn>
+          </div>
+        </div>
+
+        <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 16px 60px"}}>
+          <div style={{fontSize:11,fontWeight:700,color:G.g1,letterSpacing:4,textTransform:"uppercase",marginBottom:6}}>ITEMS</div>
+          <div style={{fontSize:"clamp(24px,5vw,36px)",fontWeight:900,letterSpacing:2,marginBottom:20}}>商品一覧</div>
+          <div style={{display:"flex",gap:16,flexWrap:"wrap",background:"#fff",borderRadius:10,padding:"12px 16px",marginBottom:20,fontSize:12,color:"#555",boxShadow:"0 1px 6px rgba(0,0,0,.06)"}}>
+            <span>🟡 黄：ジュニア（4〜6年生）必需品</span><span>🔴 赤：ジュニアユース必需品</span>
+          </div>
+          <div className="flt-wrap" style={{marginBottom:20}}>
+            {CATS.map(c=><Btn key={c} onClick={()=>setCat(c)} style={{whiteSpace:"nowrap",padding:"7px 16px",borderRadius:99,border:c===cat?`2px solid ${G.g1}`:"2px solid #ccc",background:c===cat?G.g1:"#fff",color:c===cat?"#fff":"#555",fontWeight:700,fontSize:13}}>{c}</Btn>)}
+          </div>
+          <div className="pgrid">
+            {filteredProds.map(p=><ProductCard key={p.id} p={p} onAdd={addToCart}/>)}
+          </div>
+        </div>
+
+        <div style={{background:G.g3,padding:"28px 16px",textAlign:"center",borderTop:"3px solid "+G.gold}}>
+          <div style={{color:G.gold,fontWeight:900,fontSize:20,letterSpacing:4,marginBottom:4,fontFamily:"'Barlow Condensed',sans-serif"}}>GRANDE FC</div>
+          <div style={{color:"rgba(255,255,255,.3)",fontSize:12,marginBottom:14}}>八ヶ岳グランデフットボールクラブ</div>
+          <Btn onClick={()=>setPage("login")} style={{background:"transparent",border:"1px solid rgba(200,169,74,.25)",color:"rgba(255,255,255,.3)",padding:"6px 12px",borderRadius:6,fontSize:11}}>管理者ページ</Btn>
+        </div>
+      </>}
+
+      {/* ─── CART ─── */}
+      {cartOpen&&<div style={{position:"fixed",inset:0,zIndex:200}}>
+        <div onClick={()=>setCartOpen(false)} style={{position:"absolute",inset:0,background:"rgba(0,0,0,.5)"}}/>
+        <div style={{position:"absolute",top:0,right:0,width:Math.min(400,window.innerWidth),height:"100%",background:"#fff",display:"flex",flexDirection:"column",boxShadow:"-4px 0 20px rgba(0,0,0,.15)"}}>
+          <div style={{background:G.g3,padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"3px solid "+G.gold}}>
+            <div style={{color:"#fff",fontWeight:900,fontSize:20,letterSpacing:2,fontFamily:"'Barlow Condensed',sans-serif"}}>CART 🛒</div>
+            <Btn onClick={()=>setCartOpen(false)} style={{background:"none",border:"none",color:"#fff",fontSize:24}}>✕</Btn>
+          </div>
+          <div style={{flex:1,overflowY:"auto",padding:16}}>
+            {!cart.length?<div style={{textAlign:"center",padding:"50px 0",color:"#aaa"}}><div style={{fontSize:44,marginBottom:10}}>🛒</div><div>カートが空です</div></div>
+            :Object.values(cartGrouped).map((g,gi)=>(
+              <div key={gi} className="cart-group">
+                <div style={{fontWeight:700,fontSize:14,color:G.g1,marginBottom:8}}>{g.pname}</div>
+                {g.items.map((it,ii)=>{
+                  const idx=cart.indexOf(it);
+                  return(
+                    <div key={ii} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 0"}}>
+                      <div style={{fontSize:13,color:"#555"}}>サイズ: <strong>{it.size}</strong></div>
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <Btn onClick={()=>setCart(p=>{const n=[...p];n[idx]={...n[idx],qty:Math.max(1,n[idx].qty-1)};return n;})} style={{width:22,height:22,border:"1px solid #ddd",borderRadius:4,background:"#f5f5f5",fontSize:12}}>−</Btn>
+                        <span style={{fontWeight:700,fontSize:13,width:22,textAlign:"center"}}>{it.qty}</span>
+                        <Btn onClick={()=>setCart(p=>{const n=[...p];n[idx]={...n[idx],qty:n[idx].qty+1};return n;})} style={{width:22,height:22,border:"1px solid #ddd",borderRadius:4,background:"#f5f5f5",fontSize:12}}>＋</Btn>
+                        <span style={{fontWeight:700,fontSize:13,marginLeft:6}}>{fmt(it.price*it.qty)}</span>
+                        <Btn onClick={()=>setCart(p=>p.filter((_,i)=>i!==idx))} style={{background:"none",border:"none",color:"#ccc",fontSize:16}}>✕</Btn>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          <div style={{padding:"16px 20px",borderTop:"2px solid #f0f0f0"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <span style={{fontWeight:700,color:"#555"}}>合計</span>
+              <span style={{fontSize:26,fontWeight:900,color:G.g1}}>{fmt(cartTotal)}</span>
+            </div>
+            <Btn onClick={()=>{setCartOpen(false);setStep(1);}} disabled={!cart.length} style={{width:"100%",padding:14,background:cart.length?G.g1:"#ccc",color:"#fff",border:"none",borderRadius:8,fontWeight:900,fontSize:18,letterSpacing:1}}>注文へ進む →</Btn>
+          </div>
+        </div>
+      </div>}
+
+      {/* ─── ORDER MODAL ─── */}
+      {step>0&&<div style={{position:"fixed",inset:0,zIndex:300,background:"rgba(0,0,0,.65)",overflowY:"auto",padding:"20px 16px",display:"flex",alignItems:"flex-start",justifyContent:"center"}}>
+        <div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:500,overflow:"hidden"}}>
+          <div style={{background:G.g3,padding:"18px 22px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"3px solid "+G.gold}}>
+            <div style={{color:"#fff",fontWeight:900,fontSize:20,letterSpacing:2,fontFamily:"'Barlow Condensed',sans-serif"}}>{step===1?"ORDER INFO":step===2?"CONFIRM":"COMPLETE ✓"}</div>
+            {step<3&&<Btn onClick={()=>setStep(0)} style={{background:"none",border:"none",color:"#fff",fontSize:24}}>✕</Btn>}
+          </div>
+          <div style={{display:"flex",justifyContent:"center",padding:"16px 0 4px"}}>
+            {[["1","情報入力"],["2","確認"],["3","完了"]].map(([n,l],i)=>{
+              const s=i+1,done=s<step,cur=s===step;
+              return(<div key={n} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4,position:"relative"}}>
+                {i<2&&<div style={{position:"absolute",top:14,left:"60%",width:"80%",height:2,background:done?G.g1:"#ddd"}}/>}
+                <div style={{width:28,height:28,borderRadius:"50%",background:(done||cur)?G.g1:"#ddd",color:(done||cur)?"#fff":"#999",fontSize:12,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",zIndex:1}}>{done?"✓":n}</div>
+                <div style={{fontSize:10,color:(done||cur)?"#111":"#aaa",fontWeight:(done||cur)?700:400,whiteSpace:"nowrap"}}>{l}</div>
+              </div>);
+            })}
+          </div>
+          <div style={{padding:22}}>
+            {step===1&&<>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}} className="frow">
+                <div><label style={{display:"block",fontSize:11,fontWeight:700,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:5}}>保護者氏名 *</label><input style={{width:"100%",padding:"11px 13px",border:"1.5px solid #ddd",borderRadius:8,fontSize:14,outline:"none",background:"#fafafa"}} value={form.pName} onChange={e=>setForm(f=>({...f,pName:e.target.value}))} placeholder="山田 花子"/></div>
+                <div><label style={{display:"block",fontSize:11,fontWeight:700,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:5}}>選手氏名 *</label><input style={{width:"100%",padding:"11px 13px",border:"1.5px solid #ddd",borderRadius:8,fontSize:14,outline:"none",background:"#fafafa"}} value={form.sName} onChange={e=>setForm(f=>({...f,sName:e.target.value}))} placeholder="山田 一郎"/></div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}} className="frow">
+                <div><label style={{display:"block",fontSize:11,fontWeight:700,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:5}}>チーム</label><select style={{width:"100%",padding:"11px 13px",border:"1.5px solid #ddd",borderRadius:8,fontSize:14,outline:"none",background:"#fafafa"}} value={form.cat} onChange={e=>setForm(f=>({...f,cat:e.target.value}))}>{TEAMS.map(t=><option key={t}>{t}</option>)}</select></div>
+                <div><label style={{display:"block",fontSize:11,fontWeight:700,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:5}}>支払方法</label><select style={{width:"100%",padding:"11px 13px",border:"1.5px solid #ddd",borderRadius:8,fontSize:14,outline:"none",background:"#fafafa"}} value={form.pay} onChange={e=>setForm(f=>({...f,pay:e.target.value}))}>{PAYS.map(p=><option key={p}>{p}</option>)}</select></div>
+              </div>
+              <div style={{marginBottom:14}}><label style={{display:"block",fontSize:11,fontWeight:700,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:5}}>メールアドレス *</label><input type="email" style={{width:"100%",padding:"11px 13px",border:"1.5px solid #ddd",borderRadius:8,fontSize:14,outline:"none",background:"#fafafa"}} value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} placeholder="yamada@example.com"/></div>
+              <div style={{marginBottom:14}}><label style={{display:"block",fontSize:11,fontWeight:700,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:5}}>備考・ご要望</label><textarea style={{width:"100%",padding:"11px 13px",border:"1.5px solid #ddd",borderRadius:8,fontSize:14,outline:"none",background:"#fafafa",height:70,resize:"vertical"}} value={form.note} onChange={e=>setForm(f=>({...f,note:e.target.value}))} placeholder="名前印刷希望など"/></div>
+              <Btn onClick={()=>{if(!form.pName||!form.sName||!form.email){showToast("必須項目を入力してください");return;}setStep(2);}} style={{width:"100%",padding:13,background:G.g1,color:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:15}}>注文内容を確認する →</Btn>
+            </>}
+            {step===2&&<>
+              <div style={{background:"#f8faf8",borderRadius:10,padding:14,marginBottom:14,border:"1px solid #dde8dd"}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#888",letterSpacing:2,marginBottom:8}}>注文商品</div>
+                {cart.map((it,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #eee",fontSize:14}}><span>{it.pname}（{it.size}）× {it.qty}</span><span>{fmt(it.price*it.qty)}</span></div>)}
+                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0 0",fontWeight:900,fontSize:17}}><span>合計</span><span style={{color:G.g1,fontSize:20}}>{fmt(cartTotal)}</span></div>
+              </div>
+              <div style={{background:"#f8faf8",borderRadius:10,padding:14,marginBottom:14,border:"1px solid #dde8dd"}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#888",letterSpacing:2,marginBottom:8}}>注文者情報</div>
+                {[["保護者氏名",form.pName],["選手氏名",form.sName],["チーム",form.cat],["メールアドレス",form.email],["支払方法",form.pay],...(form.note?[["備考",form.note]]:[])].map(([k,v])=>(
+                  <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",fontSize:13,borderBottom:"1px solid #eee"}}><span style={{color:"#888"}}>{k}</span><span style={{fontWeight:700}}>{v}</span></div>
+                ))}
+              </div>
+              <Btn onClick={()=>setStep(1)} style={{width:"100%",padding:13,background:"#f0f0f0",color:"#555",border:"none",borderRadius:8,fontWeight:700,fontSize:15,marginBottom:8}}>← 戻る</Btn>
+              <Btn onClick={placeOrder} style={{width:"100%",padding:13,background:G.gold,color:G.g3,border:"none",borderRadius:8,fontWeight:900,fontSize:15}}>✓ 注文を確定する</Btn>
+            </>}
+            {step===3&&lastOrder&&<>
+              <div style={{width:68,height:68,background:G.g1,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 14px"}}>✓</div>
+              <div style={{fontWeight:900,fontSize:22,textAlign:"center",marginBottom:6}}>注文完了！</div>
+              <div style={{textAlign:"center",color:"#888",fontSize:13,marginBottom:16}}>ご注文ありがとうございます</div>
+              <div style={{background:"#f0faf0",border:"1px solid #b2d8b2",borderRadius:8,padding:12,textAlign:"center",marginBottom:14,fontSize:13}}>
+                注文IDをメモしてください<br/><span style={{fontSize:20,fontWeight:900,color:G.g1,letterSpacing:2}}>{lastOrder.id}</span>
+              </div>
+              <div style={{background:"#f8faf8",borderRadius:10,padding:14,marginBottom:14,border:"1px solid #dde8dd"}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#888",letterSpacing:2,marginBottom:8}}>注文内容</div>
+                {lastOrder.items.map((it,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",fontSize:14,borderBottom:"1px solid #eee"}}><span>{it.pname}（{it.size}）× {it.qty}点</span><span>{fmt(it.price*it.qty)}</span></div>)}
+                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0 0",fontWeight:900,fontSize:16}}><span>合計</span><span style={{color:G.g1}}>{fmt(lastOrder.total)}</span></div>
+              </div>
+              <Btn onClick={()=>{setStep(0);setPage("shop");}} style={{width:"100%",padding:13,background:G.g1,color:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:15}}>ショップに戻る</Btn>
+            </>}
+          </div>
+        </div>
+      </div>}
+
+      {/* ─── LOGIN ─── */}
+      {page==="login"&&<div style={{background:G.g3,minHeight:"100vh",padding:"60px 16px",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{background:"rgba(255,255,255,.06)",borderRadius:16,padding:32,width:"100%",maxWidth:360,border:"1px solid rgba(200,169,74,.3)"}}>
+          <div style={{textAlign:"center",fontSize:36,marginBottom:12}}>🔐</div>
+          <div style={{color:"#fff",fontWeight:900,fontSize:26,letterSpacing:3,textAlign:"center",marginBottom:4,fontFamily:"'Barlow Condensed',sans-serif"}}>ADMIN</div>
+          <div style={{textAlign:"center",color:G.gold,fontSize:11,marginBottom:16}}>パスワード: grande2024</div>
+          <input type="password" style={{width:"100%",padding:"11px 13px",border:"1.5px solid rgba(255,255,255,.15)",borderRadius:8,fontSize:14,background:"rgba(255,255,255,.08)",color:"#fff",outline:"none",marginBottom:6}}
+            value={pw} onChange={e=>setPw(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter"){if(pw===ADM_PW){setPage("admin");setPwErr("");setAdminTab("dash");}else setPwErr("パスワードが正しくありません");}}}
+            placeholder="パスワードを入力"/>
+          {pwErr&&<div style={{color:"#f88",fontSize:13,textAlign:"center",marginBottom:8}}>{pwErr}</div>}
+          <Btn onClick={()=>{if(pw===ADM_PW){setPage("admin");setPwErr("");setAdminTab("dash");}else setPwErr("パスワードが正しくありません");}} style={{width:"100%",padding:13,background:G.gold,color:G.g3,border:"none",borderRadius:8,fontWeight:900,fontSize:15,marginTop:8,marginBottom:8}}>ログイン</Btn>
+          <Btn onClick={()=>setPage("shop")} style={{width:"100%",padding:13,background:"rgba(255,255,255,.06)",color:"rgba(255,255,255,.4)",border:"1px solid rgba(255,255,255,.1)",borderRadius:8,fontWeight:700,fontSize:14}}>← ショップに戻る</Btn>
+        </div>
+      </div>}
+
+      {/* ─── ADMIN ─── */}
+      {page==="admin"&&<div style={{background:G.lt,minHeight:"100vh"}}>
+        <div style={{background:G.g3,padding:"0 16px",borderBottom:"3px solid "+G.gold}}>
+          <div style={{maxWidth:1200,margin:"0 auto",height:54,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{color:"#fff",fontWeight:900,fontSize:18,letterSpacing:3,fontFamily:"'Barlow Condensed',sans-serif"}}>GRANDE <span style={{color:G.gold}}>ADMIN</span></div>
+            <div style={{display:"flex",gap:8}}>
+              <Btn onClick={()=>setPage("shop")} style={{background:"transparent",border:"1px solid rgba(200,169,74,.3)",color:"rgba(255,255,255,.5)",padding:"5px 12px",borderRadius:6,fontSize:11}}>← ショップ</Btn>
+              <Btn onClick={()=>{setPage("shop");setPw("");}} style={{background:"transparent",border:"1px solid rgba(200,169,74,.3)",color:"rgba(255,255,255,.5)",padding:"5px 12px",borderRadius:6,fontSize:11}}>ログアウト</Btn>
+            </div>
+          </div>
+        </div>
+        <div style={{background:"#145224",borderBottom:"1px solid rgba(200,169,74,.2)",display:"flex",overflowX:"auto"}}>
+          {[["dash","📊 ダッシュボード"],["orders","📋 注文一覧"],["stats","📈 商品別集計"],["cfg","⚙️ EmailJS"]].map(([t,l])=>(
+            <Btn key={t} onClick={()=>setAdminTab(t)} style={{padding:"14px 16px",background:"none",border:"none",color:adminTab===t?"#fff":"rgba(255,255,255,.4)",fontWeight:700,fontSize:12,whiteSpace:"nowrap",borderBottom:adminTab===t?"3px solid "+G.gold:"3px solid transparent"}}>{l}</Btn>
+          ))}
+        </div>
+        <div style={{maxWidth:1200,margin:"0 auto",padding:"24px 16px"}}>
+          {adminTab==="dash"&&<>
+            <div style={{fontWeight:900,fontSize:26,letterSpacing:2,marginBottom:16,color:G.g3,fontFamily:"'Barlow Condensed',sans-serif"}}>DASHBOARD</div>
+            <div className="dc-grid">
+              {[{l:"総売上金額",v:fmt(totalSales),ic:"💰",c:G.g1},{l:"総注文件数",v:orders.length+"件",ic:"📦",c:"#3B82F6"},{l:"未確認件数",v:bySt("未確認")+"件",ic:"🔔",c:G.gold},{l:"発注待ち",v:bySt("確認済み")+"件",ic:"⏳",c:"#f59e0b"},{l:"受け渡し完了",v:bySt("受け渡し完了")+"件",ic:"✅",c:"#9CA3AF"}].map(c=>(
+                <div key={c.l} style={{background:"#fff",borderRadius:12,padding:16,boxShadow:"0 1px 6px rgba(0,0,0,.06)",borderLeft:"4px solid "+c.c}}>
+                  <div style={{fontSize:20,marginBottom:6}}>{c.ic}</div>
+                  <div style={{fontSize:20,fontWeight:900,marginBottom:2}}>{c.v}</div>
+                  <div style={{fontSize:11,color:"#888"}}>{c.l}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
+              <Btn onClick={()=>{const h=["注文ID","注文日","保護者氏名","選手氏名","チーム","メール","支払方法","合計","ステータス","備考","商品サマリー"];const r=orders.map(o=>[o.id,fmtD(o.date),o.pName,o.sName,o.cat,o.email,o.pay,o.total,o.status,o.note||"",o.items.map(i=>i.pname+"("+i.size+")×"+i.qty).join(" / ")]);csvDl(mkCsv([h,...r]),"注文一覧.csv");showToast("注文一覧CSVをダウンロードしました");}} style={{padding:"9px 14px",background:G.g1,color:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:12}}>📥 注文一覧CSV</Btn>
+              <Btn onClick={()=>{const h=["注文ID","注文日","保護者氏名","選手氏名","チーム","メール","支払方法","ステータス","商品名","サイズ","数量","単価","小計","備考"];const r=[];orders.forEach(o=>o.items.forEach(it=>r.push([o.id,fmtD(o.date),o.pName,o.sName,o.cat,o.email,o.pay,o.status,it.pname,it.size,it.qty,it.price,it.price*it.qty,o.note||""])));csvDl(mkCsv([h,...r]),"注文明細.csv");showToast("注文明細CSVをダウンロードしました");}} style={{padding:"9px 14px",background:G.g2,color:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:12}}>📥 注文明細CSV</Btn>
+            </div>
+            <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>最近の注文</div>
+            <div className="olist">
+              {orders.slice(0,5).map(o=>(
+                <div key={o.id} style={{background:"#fff",borderRadius:12,padding:14,boxShadow:"0 1px 6px rgba(0,0,0,.06)"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                    <div><div style={{fontWeight:700,fontSize:14}}>{o.pName} / {o.sName}</div><div style={{fontSize:11,color:"#aaa",marginTop:2}}>{fmtD(o.date)}</div></div>
+                    <StatusBadge status={o.status}/>
+                  </div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:12,color:"#888"}}>{o.pay}</span>
+                    <span style={{fontSize:18,fontWeight:900,color:G.g1}}>{fmt(o.total)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>}
+
+          {adminTab==="orders"&&<>
+            <div style={{fontWeight:900,fontSize:26,letterSpacing:2,marginBottom:12,color:G.g3,fontFamily:"'Barlow Condensed',sans-serif"}}>ORDERS</div>
+            <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
+              <Btn onClick={()=>{const h=["注文ID","注文日","保護者氏名","選手氏名","チーム","メール","支払方法","合計","ステータス","備考","商品サマリー"];const r=orders.map(o=>[o.id,fmtD(o.date),o.pName,o.sName,o.cat,o.email,o.pay,o.total,o.status,o.note||"",o.items.map(i=>i.pname+"("+i.size+")×"+i.qty).join(" / ")]);csvDl(mkCsv([h,...r]),"注文一覧.csv");}} style={{padding:"8px 14px",background:G.g1,color:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:12}}>📥 一覧CSV</Btn>
+              <Btn onClick={()=>{const h=["注文ID","注文日","保護者氏名","選手氏名","チーム","メール","支払方法","ステータス","商品名","サイズ","数量","単価","小計","備考"];const r=[];orders.forEach(o=>o.items.forEach(it=>r.push([o.id,fmtD(o.date),o.pName,o.sName,o.cat,o.email,o.pay,o.status,it.pname,it.size,it.qty,it.price,it.price*it.qty,o.note||""])));csvDl(mkCsv([h,...r]),"注文明細.csv");}} style={{padding:"8px 14px",background:G.g2,color:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:12}}>📥 明細CSV</Btn>
+            </div>
+            <div className="sf-wrap">
+              {["すべて",...STS].map(s=><Btn key={s} onClick={()=>setSfSt(s)} style={{padding:"5px 11px",borderRadius:99,border:"none",fontWeight:700,fontSize:11,whiteSpace:"nowrap",background:sfSt===s?G.g1:"#fff",color:sfSt===s?"#fff":"#555",boxShadow:"0 1px 4px rgba(0,0,0,.08)"}}>{s}</Btn>)}
+            </div>
+            <div className="olist">
+              {filteredOrders.map(o=>(
+                <div key={o.id} style={{background:"#fff",borderRadius:12,padding:14,boxShadow:"0 1px 6px rgba(0,0,0,.06)",cursor:"pointer",border:selOid===o.id?"2px solid "+G.g1:"2px solid transparent"}} onClick={()=>setSelOid(selOid===o.id?null:o.id)}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:6}}>
+                    <div><div style={{fontWeight:700,fontSize:14}}>{o.pName} / {o.sName}（{o.cat}）</div><div style={{fontSize:11,color:"#aaa",marginTop:2}}>{fmtD(o.date)} · {o.id}</div></div>
+                    <StatusBadge status={o.status}/>
+                  </div>
+                  <div style={{fontSize:12,color:"#666",marginBottom:6,lineHeight:1.6}}>{o.items.map(i=>i.pname+"（"+i.size+"）×"+i.qty).join("　")}</div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:12,color:"#888"}}>{o.pay}</span>
+                    <span style={{fontSize:18,fontWeight:900,color:G.g1}}>{fmt(o.total)}</span>
+                  </div>
+                  {selOid===o.id&&<div style={{marginTop:12,paddingTop:12,borderTop:"1px solid #f0f0f0"}} onClick={e=>e.stopPropagation()}>
+                    <div style={{fontSize:13,color:"#555",marginBottom:6}}>📧 {o.email}{o.note&&" · 備考: "+o.note}</div>
+                    <div style={{background:"#f8faf8",borderRadius:10,padding:12,marginBottom:10,border:"1px solid #dde8dd"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"#888",marginBottom:6}}>注文明細</div>
+                      {o.items.map((it,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:13,borderBottom:"1px solid #eee"}}><span>{it.pname}（{it.size}）× {it.qty}点</span><span>{fmt(it.price*it.qty)}</span></div>)}
+                      <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0 0",fontWeight:900,fontSize:15}}><span>合計</span><span style={{color:G.g1}}>{fmt(o.total)}</span></div>
+                    </div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#555",marginBottom:6}}>ステータス変更:</div>
+                    <div className="sc-btns">
+                      {STS.map((s,si)=><Btn key={s} onClick={()=>setOrders(prev=>prev.map(x=>x.id===o.id?{...x,status:s}:x))} style={{padding:"5px 9px",borderRadius:6,border:"none",fontSize:11,fontWeight:700,background:o.status===s?ST_COLORS[si]:"#f0f0f0",color:o.status===s?"#fff":"#555"}}>{s}</Btn>)}
+                    </div>
+                    <Btn onClick={()=>printInvoice(o)} style={{marginTop:10,padding:"8px 14px",background:G.g3,color:"#fff",border:"none",borderRadius:8,fontSize:12,fontWeight:700}}>🖨️ 請求書を印刷する</Btn>
+                  </div>}
+                </div>
+              ))}
+              {!filteredOrders.length&&<div style={{color:"#aaa",padding:"20px 0"}}>注文がありません</div>}
+            </div>
+          </>}
+
+          {adminTab==="stats"&&<>
+            <div style={{fontWeight:900,fontSize:26,letterSpacing:2,marginBottom:16,color:G.g3,fontFamily:"'Barlow Condensed',sans-serif"}}>STATS</div>
+            {adminStats.length?adminStats.map(p=>(
+              <div key={p.id} style={{background:"#fff",borderRadius:12,padding:16,boxShadow:"0 1px 6px rgba(0,0,0,.06)",marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                  <div style={{width:46,height:46,borderRadius:8,background:"#f0f4f0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{p.cat==="ソックス"?"🧦":p.cat==="バッグ"?"🎒":p.cat==="ボトムス"?"👖":"👕"}</div>
+                  <div><div style={{fontWeight:700,fontSize:14}}>{p.name}</div><div style={{fontSize:12,color:"#888"}}>合計: {p.total}点 / {fmt(p.price*p.total)}</div></div>
+                </div>
+                <div className="st-szs">
+                  {p.sizes.map(s=><div key={s} style={{background:"#f8faf8",borderRadius:8,padding:"8px 12px",textAlign:"center",minWidth:52}}><div style={{fontSize:9,color:"#888",marginBottom:2}}>{s}</div><div style={{fontSize:18,fontWeight:900,color:G.g1}}>{p.sc[s]||0}</div><div style={{fontSize:9,color:"#bbb"}}>点</div></div>)}
+                </div>
+              </div>
+            )):<div style={{color:"#aaa"}}>注文データがありません</div>}
+          </>}
+
+          {adminTab==="cfg"&&<>
+            <div style={{fontWeight:900,fontSize:26,letterSpacing:2,marginBottom:8,color:G.g3,fontFamily:"'Barlow Condensed',sans-serif"}}>EMAILJS設定</div>
+            <div style={{color:"#888",fontSize:13,marginBottom:16}}><a href="https://www.emailjs.com" target="_blank" rel="noreferrer" style={{color:G.g1}}>emailjs.com</a> で無料アカウントを作成してください。</div>
+            {[{t:"🔑 基本設定",fs:[{l:"Public Key",p:"user_xxxxxxxxx"},{l:"Service ID",p:"service_xxxxxxx"}]},{t:"📧 管理者通知",fs:[{l:"管理者メール",p:"admin@example.com"},{l:"管理者用 Template ID",p:"template_xxxxxxx"}]},{t:"📨 保護者確認メール",fs:[{l:"保護者用 Template ID",p:"template_xxxxxxx"}]}].map(sec=>(
+              <div key={sec.t} style={{background:"#fff",borderRadius:12,padding:16,marginBottom:14,border:"1px solid #ddd"}}>
+                <div style={{fontWeight:700,fontSize:14,marginBottom:12}}>{sec.t}</div>
+                <div style={{display:"grid",gridTemplateColumns:sec.fs.length>1?"1fr 1fr":"1fr",gap:10}} className="frow">
+                  {sec.fs.map(f=><div key={f.l}><label style={{display:"block",fontSize:11,fontWeight:700,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:5}}>{f.l}</label><input style={{width:"100%",padding:"11px 13px",border:"1.5px solid #ddd",borderRadius:8,fontSize:14,outline:"none",background:"#fafafa"}} placeholder={f.p}/></div>)}
+                </div>
+              </div>
+            ))}
+            <div style={{background:"#f8faf8",borderRadius:8,padding:10,fontSize:12,color:"#666",lineHeight:1.9,marginBottom:14}}>テンプレート変数：{"{{order_id}} {{date}} {{parent_name}} {{player_name}} {{category}} {{items}} {{total}} {{payment}} {{note}} {{to_email}}"}</div>
+            <Btn onClick={()=>showToast("設定を保存しました")} style={{width:"100%",padding:13,background:G.g1,color:"#fff",border:"none",borderRadius:8,fontWeight:700,fontSize:15}}>設定を保存する</Btn>
+          </>}
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
